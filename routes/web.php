@@ -2,19 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
-Route::get('/', function () {
-
+function fireParams() {
     $colorPatter = [
         "#070707",
         "#1f0707",
@@ -55,9 +43,25 @@ Route::get('/', function () {
         "#ffffff",
     ];
 
-    $heightFire = 40;
+    $heightFire = 50;
     $widthFire = $heightFire * 2;
+    $array = array_fill(0, $heightFire * $widthFire, 0);
 
-    return view('firedoom',['patter' => json_encode($colorPatter), 'heightFire' => $heightFire, 'widthFire' => $widthFire]);
+    return view('firedoom',[
+        'patterJS' => json_encode($colorPatter), 
+        'arrayJS' => json_encode($array), 
+        'colorPatter' => $colorPatter, 
+        'heightFire' => $heightFire, 
+        'widthFire' => $widthFire,
+        'array' => $array
+    ]);
+}
+
+Route::get('/', function () {
+    return fireParams();
+});
+
+Route::get('/phpGenerate', function () {
+    return fireParams();
 });
 

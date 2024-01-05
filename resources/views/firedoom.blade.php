@@ -6,7 +6,10 @@
         <title>Fire DOOM</title>
         <style>
             body{
-                background: #070707;
+                display: flex;
+                justify-content: center;
+                align-content: center;
+                background: #777;
             }
 
             table {
@@ -30,11 +33,11 @@
     </head>
     <body class="antialiased">
         <script>
-            const colorPatter = {!! $patter !!};
+            const colorPatter = {!! $patterJS !!};
             const heightFire = {{ $heightFire }};
             const widthFire = {{ $widthFire }};
-        
-            let arrayCellFire = new Array(widthFire * heightFire).fill(0);
+
+            let arrayCellFire = {!! $arrayJS !!};
         
             const tableElement = document.createElement("table");
             document.body.appendChild(tableElement);
@@ -66,8 +69,8 @@
         
             const calcFirePropagation = () => {
                 arrayCellFire.forEach((v, index) => {
-                const decay = Math.floor(Math.random() * 2);
-                let intensity = 36;
+                    const decay = Math.floor(Math.random() * 3);
+                    let intensity = 36;
                     if (!(index >= widthFire * heightFire - widthFire)) {
                         if (index + heightFire + decay >= arrayCellFire.length) {
                             return arrayCellFire[index + heightFire] - decay;
