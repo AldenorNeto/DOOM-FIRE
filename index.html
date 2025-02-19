@@ -28,13 +28,8 @@
         height: 0;
       }
     </style>
-    <link rel="preconnect" href="https://fonts.bunny.net" />
-    <link
-      href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap"
-      rel="stylesheet"
-    />
   </head>
-  <body class="antialiased">
+  <body>
     <script>
       const colorPatter = [
         "#070707",
@@ -78,7 +73,8 @@
 
       const heightFire = 50;
       const widthFire = heightFire;
-      let arrayCellFire = Array(heightFire * widthFire).fill(0);
+      const totalLengthFire = heightFire * widthFire;
+      let arrayCellFire = Array(totalLengthFire).fill(0);
 
       const tableElement = document.createElement("table");
       document.body.appendChild(tableElement);
@@ -90,8 +86,7 @@
         const tbodyElementInnerHTML = [
           ...arrayFire.map((intensity, index) => {
             let innerHTML = "";
-            let rest = index % widthFire;
-            if (rest === 0) {
+            if (index % widthFire === 0) {
               innerHTML += index ? `</tr><tr>` : `<tr>`;
             }
 
@@ -104,21 +99,24 @@
       };
 
       const calcFirePropagation = () => {
-        arrayCellFire.forEach((v, index) => {
+        arrayCellFire.forEach((_, index) => {
           const decay = Math.floor(Math.random() * 3);
           let intensity = 36;
 
-          if (!(index >= widthFire * heightFire - widthFire)) {
+          const newValue = arrayCellFire[index + heightFire] - decay;
+
+          if (!(index >= totalLengthFire - widthFire)) {
             if (index + heightFire + decay >= arrayCellFire.length) {
-              return arrayCellFire[index + heightFire] - decay;
+              return newValue;
             }
 
-            intensity = arrayCellFire[index + heightFire] - decay;
+            intensity = newValue;
 
             if (intensity < 0) {
               intensity = 0;
             }
           }
+
           arrayCellFire[index - decay] = intensity;
         });
 

@@ -1,143 +1,119 @@
 <?php
-    const MENSAGEM = 'Olá Mundo';
+  $heightFire = 50;
+  $widthFire = $heightFire;
+  $totalLengthFire = $heightFire * $widthFire;
+  $colorPatter = [
+    "#070707", "#1f0707", "#2f0f07", "#470f07", "#571707", "#671f07", "#771f07", "#8f2707",
+    "#9f2f07", "#af3f07", "#bf4707", "#c74707", "#df4f07", "#df5707", "#df5707", "#d75f07",
+    "#d75f07", "#d7670f", "#cf6f0f", "#cf770f", "#cf7f0f", "#cf8717", "#c78717", "#c78f17",
+    "#c7971f", "#bf9f1f", "#bf9f1f", "#bfa727", "#bfa727", "#bfaf2f", "#b7af2f", "#b7b72f",
+    "#b7b737", "#cfcf6f", "#dfdf9f", "#efefc7", "#ffffff",
+  ];
+
+  if (isset($_GET['currentArrayCellFire'])) {
+      $currentArray = json_decode($_GET['currentArrayCellFire'], true);
+      if (!is_array($currentArray) || count($currentArray) !== $totalLengthFire) {
+          $currentArray = array_fill(0, $totalLengthFire, 0);
+      }
+  } else {
+      $currentArray = array_fill(0, $totalLengthFire, 0);
+  }
+
+  // Inicializa a última linha como a fonte do fogo com intensidade máxima
+  for ($x = 0; $x < $widthFire; $x++) {
+      $currentArray[(($heightFire - 1) * $widthFire) + $x] = count($colorPatter) - 1;
+  }
+
+  function calcFirePropagation(&$fireArray, $widthFire, $heightFire, $totalLengthFire) {
+    for ($h = 0; $h < $heightFire; $h++) { // De baixo para cima
+      for ($w = 0; $w < $widthFire; $w++) {
+        $index = $h * $widthFire + $w;
+        $decay = rand(0, 2);
+        $intensity = 36;
+        
+        $newValue = (isset($fireArray[$index + $heightFire]) ? $fireArray[$index + $heightFire] : 0) - $decay;
+
+        if (!($index >= $totalLengthFire - $widthFire)) {
+          if ($index + $heightFire + $decay >= count($fireArray)) {
+            $fireArray[$index] = $newValue;
+          }
+
+          $intensity = $newValue;
+
+          if ($intensity < 0) {
+            $intensity = 0;
+          }
+        }
+
+
+        if ($index >= $decay) {
+          $fireArray[$index - $decay] = $intensity;
+        }
+      }
+    }
+  }
+
+  calcFirePropagation($currentArray, $widthFire, $heightFire, $totalLengthFire);
+
+  function gerarTabela($arrayCellFire) {
+      global $heightFire, $widthFire, $colorPatter;
+      $arrayJson = json_encode($arrayCellFire);
+      echo '<table id="tabela-fire" data-current-array=\'' . htmlspecialchars($arrayJson, ENT_QUOTES, 'UTF-8') . '\'>';
+      for ($i = 0; $i < $heightFire; $i++) {
+          echo '<tr>';
+          for ($j = 0; $j < $widthFire; $j++) {
+              $index = $arrayCellFire[$i * $widthFire + $j] ?? 0;
+              echo '<td style="background-color: ' . $colorPatter[$index] . ';"></td>';
+          }
+          echo '</tr>';
+      }
+      echo '</table>';
+  }
 ?>
 <!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Fire DOOM</title>
-    <style>
-      body {
-        display: flex;
-        justify-content: center;
-        align-content: center;
-        background: #777;
-      }
-
-      table {
-        border-collapse: collapse;
-      }
-
-      td,
-      th {
-        padding: 8px;
-        text-align: center;
-      }
-
-      td {
-        padding: 5px 5px;
-        width: 0;
-        height: 0;
-      }
-    </style>
-    <link rel="preconnect" href="https://fonts.bunny.net" />
-    <link
-      href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body class="antialiased">
-  <h1><?php echo MENSAGEM; ?></h1>
-
-    <script>
-      const colorPatter = [
-        "#070707",
-        "#1f0707",
-        "#2f0f07",
-        "#470f07",
-        "#571707",
-        "#671f07",
-        "#771f07",
-        "#8f2707",
-        "#9f2f07",
-        "#af3f07",
-        "#bf4707",
-        "#c74707",
-        "#df4f07",
-        "#df5707",
-        "#df5707",
-        "#d75f07",
-        "#d75f07",
-        "#d7670f",
-        "#cf6f0f",
-        "#cf770f",
-        "#cf7f0f",
-        "#cf8717",
-        "#c78717",
-        "#c78f17",
-        "#c7971f",
-        "#bf9f1f",
-        "#bf9f1f",
-        "#bfa727",
-        "#bfa727",
-        "#bfaf2f",
-        "#b7af2f",
-        "#b7b72f",
-        "#b7b737",
-        "#cfcf6f",
-        "#dfdf9f",
-        "#efefc7",
-        "#ffffff",
-      ];
-      const heightFire = 50;
-      const widthFire = heightFire;
-
-      let arrayCellFire = Array(heightFire * widthFire).fill(0);
-
-      const tableElement = document.createElement("table");
-      document.body.appendChild(tableElement);
-
-      const tbodyElement = document.createElement("tbody");
-      tableElement.appendChild(tbodyElement);
-
-      const renderFireTable = () => {
-        const tbodyElementInnerHTML = [
-          ...arrayCellFire.map((intensity, index) => {
-            let innerHTML = "";
-            let rest = index % widthFire;
-            if (rest === 0) {
-              innerHTML += index ? `</tr><tr>` : `<tr>`;
-            }
-
-            innerHTML += `<td id="${Math.floor(
-              index / widthFire
-            )}|${rest} -> ${index}" style="background: ${
-              colorPatter[intensity]
-            };"></td>`;
-
-            return innerHTML;
-          }),
-          "</tr>",
-        ];
-        tbodyElement.innerHTML = tbodyElementInnerHTML.join("");
-      };
-
-      const calcFirePropagation = () => {
-        arrayCellFire.forEach((v, index) => {
-          const decay = Math.floor(Math.random() * 3);
-          let intensity = 36;
-          if (!(index >= widthFire * heightFire - widthFire)) {
-            if (index + heightFire + decay >= arrayCellFire.length) {
-              return arrayCellFire[index + heightFire] - decay;
-            }
-
-            intensity = arrayCellFire[index + heightFire] - decay;
-
-            if (intensity < 0) {
-              intensity = 0;
-            }
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Fire Table</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #777;
+    }
+    table {
+      border-collapse: collapse;
+    }
+    td {
+      width: 10px;
+      height: 10px;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="fire-container">
+    <?php gerarTabela($currentArray); ?>
+  </div>
+  <script>
+    let tabela = document.getElementById('tabela-fire');
+    let currentArray = tabela ? JSON.parse(tabela.getAttribute('data-current-array')) : [];
+    function atualizarTabela() {
+      fetch(`index.php?currentArrayCellFire=${encodeURIComponent(JSON.stringify(currentArray))}`)
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('fire-container').innerHTML = data;
+          let novaTabela = document.getElementById('tabela-fire');
+          if(novaTabela) {
+            currentArray = JSON.parse(novaTabela.getAttribute('data-current-array'));
           }
-          arrayCellFire[index - decay] = intensity;
-        });
+        })
+        .catch(error => console.error('Erro ao atualizar:', error));
+    }
 
-        renderFireTable();
-      };
-
-      setInterval(calcFirePropagation, 100);
-
-      calcFirePropagation();
-    </script>
-  </body>
+    setInterval(atualizarTabela, 100);
+  </script>
+</body>
 </html>
-
